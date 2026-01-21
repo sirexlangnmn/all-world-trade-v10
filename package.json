@@ -1,0 +1,63 @@
+{
+    "name": "allworldtrade",
+    "version": "9.0.0",
+    "description": "",
+    "main": "server.js",
+    "scripts": {
+        "dev": "nodemon app/src/server.js",
+        "start": "node app/src/server.js",
+        "tailwindBuild": "tailwindcss -i ./public/assets/css/input.css -o ./public/assets/css-tailwind/output.css --watch",
+        "webpackBuild": "webpack",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "lint": "npx prettier --write ."
+    },
+    "sideEffects": false,
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "author": "",
+    "license": "",
+    "homepage": "",
+    "dependencies": {
+        "bcrypt": "^5.0.1",
+        "body-parser": "^1.19.0",
+        "compression": "^1.7.4",
+        "cookie-session": "^2.0.0",
+        "cors": "^2.8.5",
+        "crypto-js": "^4.1.1",
+        "dotenv": "^10.0.0",
+        "ejs": "^3.1.6",
+        "express": "^4.17.1",
+        "express-flash": "^0.0.2",
+        "express-session": "^1.17.2",
+        "express-validator": "^6.14.2",
+        "flowbite": "^1.6.4",
+        "handlebars": "^4.7.7",
+        "helmet": "^6.0.1",
+        "jsonwebtoken": "^9.0.2",
+        "method-override": "^3.0.0",
+        "multer": "^1.4.4-lts.1",
+        "mysql2": "^2.3.3",
+        "nodemailer": "^6.7.5",
+        "nodemailer-express-handlebars": "^5.0.0",
+        "nodemon": "^3.0.1",
+        "passport": "^0.6.0",
+        "passport-local": "^1.0.0",
+        "pdfkit": "^0.13.0",
+        "retire": "^4.3.3",
+        "sequelize": "^6.35.2",
+        "sharp": "^0.31.3",
+        "socket.io": "^4.3.2",
+        "swagger-ui-express": "^4.1.6",
+        "uuid": "8.3.2",
+        "yamljs": "^0.3.0"
+    },
+    "devDependencies": {
+        "node-fetch": "^3.2.10",
+        "prettier": "2.4.1",
+        "tailwindcss": "^3.2.7",
+        "webpack": "^5.76.1",
+        "webpack-cli": "^5.0.1"
+    }
+}
