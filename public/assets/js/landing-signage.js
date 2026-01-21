@@ -418,25 +418,27 @@ const signageCardData = [
 
 
 
-const signageCardContainer = document.getElementById("signageCardContainer");
+// const signageCardContainer = document.getElementById("signageCardContainer");
 
-signageCardData.sort((a, b) => a.name.localeCompare(b.name));
 
-signageCardData.forEach((item) => {
-  const signageCardHtml = `
-    <div class="card">
-      <a href="https://allworldtrade.com/registration" target="_blank">
-        <div class="relative w-full h-56 overflow-hidden rounded-md">
-          <div class="absolute z-10 w-full h-3/4 -bottom-12 bg-gradient-to-b from-transparent to-gray-800"></div>
-          <img src="${item.imageSrc}" class="absolute object-cover w-full h-full" alt="">
-        </div>
-        <p class="py-2 text-lg font-semibold text-center">${item.name}</p>
-      </a>
-    </div>
-  `;
+// signageCardData.sort((a, b) => a.name.localeCompare(b.name));
 
-  signageCardContainer.insertAdjacentHTML('beforeend', signageCardHtml);
-});
+// signageCardData.forEach((item) => {
+//   const signageCardHtml = `
+//     <div class="card">
+//       <a href="https://allworldtrade.com/registration" target="_blank">
+//         <div class="relative w-full h-56 overflow-hidden rounded-md">
+//           <div class="absolute z-10 w-full h-3/4 -bottom-12 bg-gradient-to-b from-transparent to-gray-800"></div>
+//           <img src="${item.imageSrc}" class="absolute object-cover w-full h-full" alt="">
+//         </div>
+//         <p class="py-2 text-lg font-semibold text-center">${item.name}</p>
+//       </a>
+//     </div>
+//   `;
+
+//   signageCardContainer.insertAdjacentHTML('beforeend', signageCardHtml);
+// });
+
 
 
 // signageCardData.forEach((item) => {

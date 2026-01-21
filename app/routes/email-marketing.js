@@ -10,7 +10,10 @@ module.exports = (app) => {
 	const path = require('path');
 	const CryptoJS = require('crypto-js');
 	const nodemailer = require('nodemailer');
-	const hbs = require('nodemailer-express-handlebars');
+	// const hbs = require('nodemailer-express-handlebars');
+	const hbs = require('nodemailer-express-handlebars').default;
+
+
 	app.use(express.static(path.join(__dirname, '../../', 'public')));
 
 
@@ -159,6 +162,8 @@ module.exports = (app) => {
 	});
 
 	function sendEmailToTrader(receiverEmailAddress, emailData) {
+		console.log('sendEmailToTrader receiverEmailAddress :', receiverEmailAddress);
+		console.log('sendEmailToTrader emailData :', emailData);
 
 		// create reusable transporter object using the default SMTP transport
 		let transporter = nodemailer.createTransport({

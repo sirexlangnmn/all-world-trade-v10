@@ -43,20 +43,22 @@ document
 function submitEmailIfHelpAndSuggestLinkNotAvailable(e) {
     e.preventDefault();
     const formSubmit = $('#formEmailIfHelpAndSuggestLinkNotAvailable');
+    console.log('formEmailIfHelpAndSuggestLinkNotAvailable');
 
     $.ajax({
         url: '/api/v2/post/submit-email-if-help-and-suggest-link-not-available',
         type: 'POST',
         data: formSubmit.serialize(),
         success: function (res) {
-            console.log(res);
+            $('#email-if-help-and-suggest-link-not-available-modal form')[0].reset();
+            var modal = UIkit.modal('#email-if-help-and-suggest-link-not-available-modal');
+            modal.hide();
+
+            console.log('submit-email-if-help-and-suggest-link-not-available res', res);
             if (res.message === 'message has been submitted successfully') {
-                $('#email-if-help-and-suggest-link-not-available-modal form')[0].reset();
-                var modal = UIkit.modal('#email-if-help-and-suggest-link-not-available-modal');
-                modal.hide();
-                // Swal.fire('Success', 'Message has been submitted successfully.', 'success');
+                Swal.fire('Success', 'Message has been submitted successfully.', 'success');
             } else {
-                // Swal.fire('Warning', 'Something went wrong. Please contact the administrator', 'warning');
+                Swal.fire('Warning', 'Something went wrong. Please contact the administrator', 'warning');
             }
         },
     });

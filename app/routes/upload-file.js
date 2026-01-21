@@ -8,7 +8,8 @@ module.exports = (app) => {
     const express = require('express');
     const path = require('path');
     const nodemailer = require('nodemailer');
-    const hbs = require('nodemailer-express-handlebars');
+    // const hbs = require('nodemailer-express-handlebars');
+    const hbs = require('nodemailer-express-handlebars').default;
     app.use(express.static(path.join(__dirname, '../../', 'public')));
 
     const mysql = require('mysql2');

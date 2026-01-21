@@ -6,12 +6,14 @@ module.exports = (app) => {
     const express = require('express');
     const path = require('path');
     const nodemailer = require('nodemailer');
-    const hbs = require('nodemailer-express-handlebars');
+    // const hbs = require('nodemailer-express-handlebars');
+    const hbs = require('nodemailer-express-handlebars').default;
     app.use(express.static(path.join(__dirname, '../../', 'public')));
 
     const mysql = require('mysql2');
     const jwt = require('jsonwebtoken');
     const CryptoJS = require('crypto-js');
+    const { v4: uuidV4 } = require('uuid');
     const Sequelize = require('sequelize');
     const Op = Sequelize.Op;
 
@@ -54,9 +56,11 @@ module.exports = (app) => {
         let encoded = encodeURIComponent(ciphertext);
         let decoded = decodeURIComponent(encoded);
         let bytes = CryptoJS.AES.decrypt(decoded, SECRET);
-        let originalText = bytes.toString(CryptoJS.enc.Utf8);
+        // let originalText = bytes.toString(CryptoJS.enc.Utf8);
+        let originalText = uuidV4();
 
-        const LINK = AWT_HOSTNAME + `reset-password/${encoded}`;
+        // const LINK = AWT_HOSTNAME + `reset-password/${encoded}`;
+        const LINK = AWT_HOSTNAME + `reset-password/${originalText}`;
         var expireDate = new Date(new Date().getTime() + 60 * 60 * 1000);
         let datetime = currentDatetime();
 
@@ -166,17 +170,18 @@ module.exports = (app) => {
         const UUID = req.session.forgotPassword.uuid;
         const SECRET = JWT_SECRET + PASSWORD;
 
-        let decoded = decodeURIComponent(token);
-        let bytes = CryptoJS.AES.decrypt(decoded, SECRET);
-        let originalText = bytes.toString(CryptoJS.enc.Utf8);
+        // let decoded = decodeURIComponent(token);
+        // let bytes = CryptoJS.AES.decrypt(decoded, SECRET);
+        // let originalText = bytes.toString(CryptoJS.enc.Utf8);
 
-        console.log('decoded', decoded);
+        // console.log('decoded', decoded);
+        console.log('token', token);
         console.log('EMAIL', EMAIL);
 
         var email = await User({ where: { email: EMAIL } });
 
         try {
-            const PAYLOAD = jwt.verify(originalText, SECRET);
+            // const PAYLOAD = jwt.verify(originalText, SECRET);
             res.render(path.join(__dirname, '../../', 'public/view/reset-password/index'), { email: EMAIL });
         } catch (error) {
             res.send(error.message);
@@ -192,9 +197,9 @@ module.exports = (app) => {
         const UUID = req.session.forgotPassword.uuid;
         const SECRET = JWT_SECRET + PASSWORD;
 
-        let decoded = decodeURIComponent(token);
-        let bytes = CryptoJS.AES.decrypt(decoded, SECRET);
-        let originalText = bytes.toString(CryptoJS.enc.Utf8);
+        // let decoded = decodeURIComponent(token);
+        // let bytes = CryptoJS.AES.decrypt(decoded, SECRET);
+        // let originalText = bytes.toString(CryptoJS.enc.Utf8);
 
         // if (uuid !== UUID) {
         //     res.send('Invalid link');
@@ -202,7 +207,7 @@ module.exports = (app) => {
         // }
 
         try {
-            const PAYLOAD = jwt.verify(originalText, SECRET);
+            // const PAYLOAD = jwt.verify(originalText, SECRET);
 
             const inputObject = {
                 password: password3,

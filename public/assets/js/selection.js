@@ -1444,7 +1444,7 @@ async function handleContactTrader(trader_uuid, communicator_link) {
     try {
         const traderIsActive = await checkIfTraderIsActive(trader_uuid);
         console.log(`handleContactTrader traderIsActive::: `, traderIsActive)
-        if (traderIsActive) {
+        if (traderIsActive == 1) {
             recordTheMeetingOfVisitorAndTrader(trader_uuid, communicator_link);
         } else {
             showTraderOfflineMessage()
