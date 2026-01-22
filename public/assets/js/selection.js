@@ -1644,7 +1644,7 @@ async function getCitiesOptions(countryElementId, stateElementId, cityElementId)
         const response = await fetch('assets/json/cities.json');
         const data = await response.json();
 
-        console.log('assets/json/cities.json: ', response)
+        // console.log('assets/json/cities.json: ', response)
 
         // const countryCode = document.getElementById(countryElementId).value;
         const countryCode = 'PH';
@@ -1692,7 +1692,7 @@ async function getCitiesOptionsStatic() {
         const response = await fetch('assets/json/cities.json');
         const data = await response.json();
 
-        console.log('assets/json/cities.json: ', response)
+        // console.log('assets/json/cities.json: ', response)
 
         // const countryCode = document.getElementById(countryElementId).value;
         const countryCode = 'PH';
