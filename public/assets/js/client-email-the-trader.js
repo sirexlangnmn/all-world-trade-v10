@@ -18,7 +18,7 @@ function submitClientEmailToTheTrader(e) {
     console.log('formClientEmailTheTraderModal', formSubmit.serialize());
 
     $.ajax({
-        url: '/api/v2/post/submit-client-email-to-the-trader',
+        url: '/api/v3/post/submit-client-email-to-the-trader',
         type: 'POST',
         data: formSubmit.serialize(),
         success: function (res) {

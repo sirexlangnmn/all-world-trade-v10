@@ -17,6 +17,7 @@ module.exports = (app) => {
 
 	app.use(express.static(path.join(__dirname, '../../', 'public')));
 
+	const submitClientEmailToTheTrader = require('../email_controllers/submit-client-email-to-the-trader.controller.js');
 
 	app.post('/api/post/emails/introduction', async (req, res) => {
 		try {
@@ -163,6 +164,7 @@ module.exports = (app) => {
 	});
 
 
+	app.post(['/api/v3/post/submit-client-email-to-the-trader'], submitClientEmailToTheTrader.create);
 	app.post('/api/v2/post/submit-client-email-to-the-trader', async (req, res) => {
 		try {
 			const { cett_company_name, cett_message } = req.body;
