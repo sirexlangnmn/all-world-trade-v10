@@ -1,230 +1,182 @@
 const db = require('../db_models');
-const sequelizeConfig = require('../config/sequelize.config.js');
-const Users_accounts = db.users_accounts;
-const Prospects = db.prospects;
+const ecdc = require('../shared/ecdc.js');
+const emailTemplate = require('../shared/email-template.js');
+const FREE_CONTACT_LIMIT = process.env.FREE_CONTACT_LIMIT;
 const Users_businesses = db.users_businesses;
-
+const Contact_requests = db.contact_requests;
 const Op = db.Sequelize.Op;
 
-const express = require('express');
-const path = require('path');
-const CryptoJS = require('crypto-js');
-const nodemailer = require('nodemailer');
-// const hbs = require('nodemailer-express-handlebars');
-const hbs = require('nodemailer-express-handlebars').default;
+
 
 exports.create = async (req, res) => {
     try {
-        const { cett_company_name, cett_message } = req.body;
-        const traderEmail = await getBusinessEmailByBusinessName(cett_company_name);
-        const clientFirstName = req.session.user.first_name;
-        const clientLastName = req.session.user.last_name;
-        const clientEmail = req.session.user.email_or_social_media;
+        const payload = extractRequestPayload(req);
+        const userSession = extractUserSession(req);
 
-        const emailData = {
-            clientFirstName,
-            clientLastName,
-            clientEmail,
-            traderEmail,
-            companyName: cett_company_name,
-            message: cett_message,
-        };
-
-        console.log('Client Email to Trader emailData v3 :', emailData);
-
-        if (traderEmail) {
-            clientEmailTheTrader(emailData);
-            sendEmailToClient(clientEmail, traderEmail);
-            notifyAWTwhenClientSentEmailToTrader(emailData);
+        const usersBusinessData = await getUsersBusinessDataByBusinessName(payload.companyName);
+        if (!usersBusinessData) {
+            return handleError('Business not found');
         }
 
+        const emailData = buildEmailData(payload, userSession, usersBusinessData);
+        const contactRequestData = buildContactRequestData(payload, userSession, usersBusinessData);
+
+        const canSendEmail = await handleContactRequest(contactRequestData);
+
+        if (canSendEmail) {
+            sendAllEmails(emailData);
+        } else {
+            console.log('Free contact limit reached or failed to create contact request.');
+        }
+
+        return res.status(200).json({ success: true });
     } catch (error) {
         console.error('Error in notify-trader-on-client-contact:', error);
+        return res.status(500).json({ success: false });
     }
 };
 
 
 
-async function getBusinessEmailByBusinessName(businessName) {
+function extractRequestPayload(req) {
+    const { cett_company_name, cett_message } = req.body;
+
+    return {
+        companyName: cett_company_name,
+        message: cett_message,
+    };
+}
+
+function extractUserSession(req) {
+    const user = req.session.user;
+
+    return {
+        visitorId: ecdc.decryptUuid(user.uuid),
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email: user.email_or_social_media,
+    };
+}
+
+
+
+function buildEmailData(payload, userSession, usersBusinessData) {
+    return {
+        clientFirstName: userSession.firstName,
+        clientLastName: userSession.lastName,
+        clientEmail: userSession.email,
+        traderEmail: usersBusinessData.business_email,
+        companyName: payload.companyName,
+        message: payload.message,
+    };
+}
+
+function buildContactRequestData(payload, userSession, usersBusinessData) {
+    return {
+        trader_id: usersBusinessData.uuid,
+        visitor_id: userSession.visitorId,
+        message: payload.message,
+    };
+}
+
+
+
+async function handleContactRequest(contactRequestData) {
+    const createResult = await createContactRequest(contactRequestData);
+    if (!createResult?.success) return false;
+
+    const countResult = await getContactRequestByTraderId(contactRequestData);
+
+    console.log('Unique contact count:', countResult.count);
+    console.log('FREE_CONTACT_LIMIT:', FREE_CONTACT_LIMIT);
+
+    return FREE_CONTACT_LIMIT > countResult.count;
+}
+
+
+
+function sendAllEmails(emailData) {
+    emailTemplate.clientEmailTheTrader(emailData);
+    emailTemplate.sendEmailToClient(
+        emailData.clientEmail,
+        emailData.traderEmail
+    );
+    emailTemplate.notifyAWTwhenClientSentEmailToTrader(emailData);
+}
+
+
+
+function handleError(message) {
+    console.error(message);
+    throw new Error(message);
+}
+
+
+
+async function getUsersBusinessDataByBusinessName(businessName) {
     try {
-        const result = await Users_businesses.findAll({
-            attributes: ['business_email'],
-            where: {
-                business_name: businessName
-            },
+        const result = await Users_businesses.findOne({
+            attributes: ['business_email', 'uuid'],
+            where: { business_name: businessName },
             raw: true
         });
 
-        return result[0]?.business_email || null;
+        return result || null;
     } catch (error) {
         console.error(error);
     }
 }
 
 
-function clientEmailTheTrader(emailData) {
-    console.log('clientEmailTheTrader clientEmail :', emailData.clientEmail);
-    console.log('clientEmailTheTrader traderEmail :', emailData.traderEmail);
-    console.log('clientEmailTheTrader companyName :', emailData.companyName);
-    console.log('clientEmailTheTrader message :', emailData.message);
+async function createContactRequest(contactRequestData) {
+    try {
+        const result = await Contact_requests.create({
+            trader_id: contactRequestData.trader_id,
+            visitor_id: contactRequestData.visitor_id,
+            message: contactRequestData.message,
+        });
 
-    // create reusable transporter object using the default SMTP transport
-    let transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_SERVERHOST,
-        port: process.env.EMAIL_PORT,
-        secure: false,
-        auth: {
-            user: process.env.SUPPORT_RECEIVER_EMAIL_ADDRESS,
-            pass: process.env.SUPPORT_RECEIVER_PASSWORD,
-        },
-        tls: {
-            rejectUnauthorized: false,
-        },
-    });
+        return {
+            success: true,
+            message: 'Contact request created successfully',
+        };
+    } catch (error) {
+        console.error('Error creating contact request:', error);
 
-    const handlebarOptions = {
-        viewEngine: {
-            extName: '.handlebars',
-            partialsDir: path.resolve('./public/view/email'),
-            defaultLayout: false,
-        },
-        viewPath: path.resolve('./public/view/email'),
-        extName: '.handlebars',
-    };
-
-    transporter.use('compile', hbs(handlebarOptions));
-
-    // setup email data with unicode symbols
-    let mailOptions = {
-        from: process.env.SUPPORT_RECEIVER_EMAIL_ADDRESS,
-        to: emailData.traderEmail,
-        subject: 'All World Trade - Client message you.',
-        template: 'client-email-the-trader',
-        context: {
-            emailData: emailData
-        },
-    };
-
-    // send mail with defined transport object
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log('transporter.sendMail error: ', error);
-            // return error;
-        } else {
-            // res.send('email sent');
-            console.log('Email has been sent to Trader: ', receiverEmailAddress);
-        }
-        // console.log('Message sent info: ', info);
-        // console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-        // res.render('Email has been sent');
-    });
+        return {
+            success: false,
+            message: 'Failed to create contact request',
+            error: error.message,
+        };
+    }
 }
 
 
-function sendEmailToClient(receiverEmailAddress, emailData) {
+async function getContactRequestByTraderId(contactRequestData) {
+    const trader_id = contactRequestData.trader_id;
 
-    // create reusable transporter object using the default SMTP transport
-    let transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_SERVERHOST,
-        port: process.env.EMAIL_PORT,
-        secure: false,
-        auth: {
-            user: process.env.SUPPORT_RECEIVER_EMAIL_ADDRESS,
-            pass: process.env.SUPPORT_RECEIVER_PASSWORD,
-        },
-        tls: {
-            rejectUnauthorized: false,
-        },
-    });
+    try {
+        const uniqueVisitorCount = await Contact_requests.count({
+            where: {
+                trader_id: trader_id,
+            },
+            distinct: true,
+            col: 'visitor_id',
+        });
 
-    const handlebarOptions = {
-        viewEngine: {
-            extName: '.handlebars',
-            partialsDir: path.resolve('./public/view/email'),
-            defaultLayout: false,
-        },
-        viewPath: path.resolve('./public/view/email'),
-        extName: '.handlebars',
-    };
+        return {
+            success: true,
+            message: 'Unique contact requests retrieved successfully',
+            count: uniqueVisitorCount,
+        };
+    } catch (error) {
+        console.error('Error get contact request by trader id:', error);
 
-    transporter.use('compile', hbs(handlebarOptions));
-
-    // setup email data with unicode symbols
-    let mailOptions = {
-        from: process.env.SUPPORT_RECEIVER_EMAIL_ADDRESS,
-        to: receiverEmailAddress,
-        subject: 'All World Trade - Traders you\'re trying to connect with.',
-        template: 'notifyClientOnTraderTheyContact',
-        context: {
-            emailData: emailData
-        },
-    };
-
-    // send mail with defined transport object
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log('transporter.sendMail error: ', error);
-            // return error;
-        } else {
-            // res.send('email sent');
-            console.log('Email has been sent to Client: ', receiverEmailAddress);
-        }
-        // console.log('Message sent info: ', info);
-        // console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-        // res.render('Email has been sent');
-    });
+        return {
+            success: false,
+            message: 'Failed to get contact request by trader id',
+            error: error.message,
+        };
+    }
 }
 
-function notifyAWTwhenClientSentEmailToTrader(emailData) {
-    const receiverEmailAddress = 'allworldtrade.com@gmail.com'
-    // create reusable transporter object using the default SMTP transport
-    let transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_SERVERHOST,
-        port: process.env.EMAIL_PORT,
-        secure: false,
-        auth: {
-            user: process.env.SUPPORT_RECEIVER_EMAIL_ADDRESS,
-            pass: process.env.SUPPORT_RECEIVER_PASSWORD,
-        },
-        tls: {
-            rejectUnauthorized: false,
-        },
-    });
-
-    const handlebarOptions = {
-        viewEngine: {
-            extName: '.handlebars',
-            partialsDir: path.resolve('./public/view/email'),
-            defaultLayout: false,
-        },
-        viewPath: path.resolve('./public/view/email'),
-        extName: '.handlebars',
-    };
-
-    transporter.use('compile', hbs(handlebarOptions));
-
-    // setup email data with unicode symbols
-    let mailOptions = {
-        from: process.env.SUPPORT_RECEIVER_EMAIL_ADDRESS,
-        to: receiverEmailAddress,
-        subject: 'All World Trade - Client sent a message to a Trader',
-        template: 'notifyAWTwhenClientSentEmailToTrader',
-        context: {
-            emailData: emailData
-        },
-    };
-
-    // send mail with defined transport object
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log('transporter.sendMail error: ', error);
-            // return error;
-        } else {
-            // res.send('email sent');
-            console.log('Email has been sent to AWT: ', receiverEmailAddress);
-        }
-        // console.log('Message sent info: ', info);
-        // console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-        // res.render('Email has been sent');
-    });
-}

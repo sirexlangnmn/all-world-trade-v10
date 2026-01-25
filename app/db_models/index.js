@@ -27,5 +27,6 @@ db.users = require('./users.model.js')(sequelize, Sequelize);
 
 
 db.prospects = require('./prospects.models.js')(sequelize, Sequelize);
+db.contact_requests = require('./contact_requests.model.js')(sequelize, Sequelize);
 
 module.exports = db;
