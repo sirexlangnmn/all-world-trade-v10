@@ -8,10 +8,7 @@ module.exports = (sequelize, Sequelize) => {
         },
         message: {
             type: Sequelize.STRING,
-        },
-        cratedAt: {
-            type: Sequelize.DATE,
-        },
+        }
     });
 
     return Contact_requests;
