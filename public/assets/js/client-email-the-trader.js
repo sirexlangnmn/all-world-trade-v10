@@ -15,23 +15,22 @@ function goToClientEmailTheTraderModal() {
 function submitClientEmailToTheTrader(e) {
     e.preventDefault();
     const formSubmit = $('#formClientEmailTheTraderModal');
-    console.log('formClientEmailTheTraderModal', formSubmit.serialize());
 
     $.ajax({
         url: '/api/v3/post/submit-client-email-to-the-trader',
         type: 'POST',
         data: formSubmit.serialize(),
         success: function (res) {
-            // $('#client-email-the-trader-modal form')[0].reset();
-            // var modal = UIkit.modal('#client-email-the-trader-modal');
-            // modal.hide();
+            $('#client-email-the-trader-modal form')[0].reset();
+            var modal = UIkit.modal('#client-email-the-trader-modal');
+            modal.hide();
 
-            // console.log('submit-client-email-to-the-trader res', res);
-            // if (res.message === 'message has been submitted successfully') {
-            //     Swal.fire('Success', 'Message has been submitted successfully.', 'success');
-            // } else {
-            //     Swal.fire('Warning', 'Something went wrong. Please contact the administrator', 'warning');
-            // }
+            console.log('submitClientEmailToTheTrader res', res);
+            if (res.success === true) {
+                Swal.fire('Success', 'Message has been submitted successfully.', 'success');
+            } else {
+                Swal.fire('Warning', 'Something went wrong. Please contact the administrator', 'warning');
+            }
         },
     });
 }

@@ -822,6 +822,10 @@ div.ex4 {
     color: black;
 }
 
+.dark .swal2-title {
+    color: black !important;
+}
+
 /* ===================================== */
 /* Orbitron [start]   */
 /* ===================================== */

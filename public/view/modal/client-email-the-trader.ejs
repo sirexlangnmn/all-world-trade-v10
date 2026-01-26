@@ -19,6 +19,9 @@
           <label> Message </label>
           <textarea rows="12" class="with-border w-full p-4" placeholder="" id="cett_message" name="cett_message"></textarea>
         </div>
+          <div class="text-sm text-gray-500 text-right mt-1">
+            <span id="cettCharCount">0</span> / 250 characters
+          </div>
       </form>
     </div>
     <div class="flex items-center w-full justify-between p-3 border-t">
@@ -32,3 +35,24 @@
     </div>
   </div>
 </div>
+
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const textarea = document.getElementById('cett_message');
+    const counter = document.getElementById('cettCharCount');
+    const maxLength = 250;
+
+    textarea.addEventListener('input', function () {
+      // Enforce max length (extra safety)
+      if (this.value.length > maxLength) {
+        this.value = this.value.substring(0, maxLength);
+      }
+
+      // Update counter
+      counter.textContent = this.value.length;
+    });
+  });
+</script>

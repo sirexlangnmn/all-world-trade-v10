@@ -27,6 +27,8 @@ exports.create = async (req, res) => {
             sendAllEmails(emailData);
         } else {
             console.log('Free contact limit reached or failed to create contact request.');
+            const emailData2 = buildEmailData2(payload, userSession, usersBusinessData);
+            sendAllEmails2(emailData, emailData2);
         }
 
         return res.status(200).json({ success: true });
@@ -71,6 +73,58 @@ function buildEmailData(payload, userSession, usersBusinessData) {
     };
 }
 
+
+function buildEmailData2(payload, userSession, usersBusinessData) {
+    return {
+        clientFirstName: maskString(userSession.firstName),
+        clientLastName: maskString(userSession.lastName),
+        clientEmail: maskString(userSession.email),
+        traderEmail: usersBusinessData.business_email,
+        companyName: payload.companyName,
+        message: payload.message,
+    };
+}
+
+
+function maskString(input) {
+    // 1. Check if input is a pure string
+    if (typeof input !== "string") {
+        return null; // or throw an error if you prefer
+    }
+
+    // Trim spaces just in case
+    const value = input.trim();
+
+    // Helper function to mask a string while keeping first & last character
+    function maskText(text) {
+        if (text.length <= 2) {
+            return text; // nothing to mask
+        }
+
+        const firstChar = text[0];
+        const lastChar = text[text.length - 1];
+        const masked = "*".repeat(text.length - 2);
+
+        return firstChar + masked + lastChar;
+    }
+
+    // 2. Check if input is an email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (emailRegex.test(value)) {
+        const [localPart, domain] = value.split("@");
+        const maskedLocalPart = maskText(localPart);
+
+        // 3. Mask only the local part, keep domain original
+        return `${maskedLocalPart}@${domain}`;
+    }
+
+    // 4. If not email, mask the whole string
+    return maskText(value);
+}
+
+
+
 function buildContactRequestData(payload, userSession, usersBusinessData) {
     return {
         trader_id: usersBusinessData.uuid,
@@ -97,6 +151,16 @@ async function handleContactRequest(contactRequestData) {
 
 function sendAllEmails(emailData) {
     emailTemplate.clientEmailTheTrader(emailData);
+    emailTemplate.sendEmailToClient(
+        emailData.clientEmail,
+        emailData.traderEmail
+    );
+    emailTemplate.notifyAWTwhenClientSentEmailToTrader(emailData);
+}
+
+
+function sendAllEmails2(emailData, emailData2) {
+    emailTemplate.clientEmailTheTrader(emailData2);
     emailTemplate.sendEmailToClient(
         emailData.clientEmail,
         emailData.traderEmail
