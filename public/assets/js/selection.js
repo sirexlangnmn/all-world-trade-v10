@@ -1468,21 +1468,21 @@ function showTraderOfflineMessage() {
     showElement(offlineTraderMessageDiv);
     showElement(offlineTraderMessage);
 
-    let countdown = 10;
-    updateCountdownMessage(offlineTraderMessage, countdown);
+    // let countdown = 10;
+    // updateCountdownMessage(offlineTraderMessage, countdown);
 
-    const intervalId = setInterval(() => {
-        countdown -= 1;
-        updateCountdownMessage(offlineTraderMessage, countdown);
+    // const intervalId = setInterval(() => {
+    //     countdown -= 1;
+    //     updateCountdownMessage(offlineTraderMessage, countdown);
 
-        if (countdown === 0) {
-            clearInterval(intervalId);
-            openTraderVideo();
-            hideElement(offlineTraderMessage);
-            hideElement(offlineTraderMessageDiv);
-            showElement(contactTheTraderMessage);
-        }
-    }, 1000);
+    //     if (countdown === 0) {
+    //         clearInterval(intervalId);
+    //         openTraderVideo();
+    //         hideElement(offlineTraderMessage);
+    //         hideElement(offlineTraderMessageDiv);
+    //         showElement(contactTheTraderMessage);
+    //     }
+    // }, 1000);
 }
 
 function notifyTraderOnClientContact(trader_uuid) {

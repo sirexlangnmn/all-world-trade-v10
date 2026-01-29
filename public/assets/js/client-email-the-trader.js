@@ -1,5 +1,7 @@
 getId('goToClientEmailTheTrader').addEventListener('click', goToClientEmailTheTraderModal);
+getId('divContactTheTrader').addEventListener('click', goToClientEmailTheTraderModal);
 getId('btnClientEmailTheTrader').addEventListener('click', submitClientEmailToTheTrader);
+
 
 function goToClientEmailTheTraderModal() {
     const selectionCompanyName = getId('selection-company-name').textContent;
