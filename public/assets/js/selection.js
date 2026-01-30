@@ -81,6 +81,7 @@ let varCounter = 0;
 let timer;
 let num = 0;
 let currentIndex = 0; // start at first item
+const HEADER_OFFSET = 125;
 
 $(function () {
     getCompaniesRelatedToCurrentUser();
@@ -388,13 +389,10 @@ function handleSlideChange(index) {
 }
 
 
-
-
-const HEADER_OFFSET = 125;
-
 function getAdjustedHeight() {
   return window.innerHeight - HEADER_OFFSET;
 }
+
 
 function positionNavigationButtons() {
   const centerY = getAdjustedHeight() / 2;
