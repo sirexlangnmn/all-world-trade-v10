@@ -80,11 +80,13 @@ let intervalId = null;
 let varCounter = 0;
 let timer;
 let num = 0;
+let currentIndex = 0; // start at first item
 
 $(function () {
     getCompaniesRelatedToCurrentUser();
     displayFirstCompanyDetails();
     displayTopCompany();
+    handleSlideChange(currentIndex);
 });
 
 function getCompaniesRelatedToCurrentUser() {
@@ -94,6 +96,7 @@ function getCompaniesRelatedToCurrentUser() {
         async: false,
         success: function (data) {
             if (data.length > 0) {
+                console.log('getCompaniesRelatedToCurrentUser data:', data);
                 companyDetailsJsonObj2.push(data);
                 dataForDisplaySearchParameter.push(data[0]);
 
@@ -200,6 +203,208 @@ function displayFirstCompanyDetails() {
               convertTimeToInternationalEnd(end_operating_hour, 'Philippines', 'UTC')
             : 'N/A';
 }
+
+// ==========================================
+// under construction
+
+
+
+
+
+selectionsNextSlide.addEventListener('click', () => {
+    currentIndex = (currentIndex + 1) % companyDetailsJsonObj2[0].length;
+    handleSlideChange(currentIndex);
+});
+
+selectionsPrevSlide.addEventListener('click', () => {
+    currentIndex =
+        (currentIndex - 1 + companyDetailsJsonObj2[0].length) % companyDetailsJsonObj2[0].length;
+    handleSlideChange(currentIndex);
+});
+
+
+function handleSlideChange(index) {
+    console.log('handleSlideChange index:', index);
+    const currentBusiness = companyDetailsJsonObj2[0][index];
+
+    if (!currentBusiness) return;
+
+    const {
+        id,
+        business_name,
+        business_tagline,
+        business_website,
+        business_email,
+        business_contact,
+        business_language_of_communication,
+        business_social_media_contact_type,
+        business_social_media_contact_number,
+        business_address,
+        business_country,
+        business_states,
+        business_city,
+        region_of_operation,
+        country_of_operation,
+        states_of_operation,
+        city_of_operation,
+        start_operating_hour,
+        end_operating_hour,
+        communicator,
+        uuid,
+        business_industry_belong_to,
+        business_major_category,
+        business_sub_category,
+        business_minor_sub_category,
+        business_scale,
+        banner
+        } = currentBusiness;
+
+
+    
+
+    console.log('Current UUID:', uuid);
+    console.log('Current business_name:', business_name);
+    console.log('Current banner:', banner);
+    // console.log('Full Business Data:', currentBusiness);
+
+    // Example usage
+    // updateBanner(currentBusiness.banner);
+    // updateName(currentBusiness.business_name);
+    // updateEmail(currentBusiness.business_email);
+
+    companyNameId.innerHTML = business_name;
+    companyTaglineId.innerHTML = business_tagline || 'N/A';
+    business_language_of_communication ? formattingLanguageName(business_language_of_communication) : '';
+    businessMajorCategoryId.innerHTML = business_major_category
+        ? getTradeCategoriesTitleById(business_major_category)
+        : 'N/A';
+    businessSubCategoryId.innerHTML = business_sub_category ? getSubCategoriesTitleById(business_sub_category) : 'N/A';
+    businessMinorSubCategoryId.innerHTML = business_minor_sub_category
+        ? getMinorSubCategoriesTitleById(business_minor_sub_category)
+        : 'N/A';
+    businessScaleId.innerHTML = business_scale ? getBusinessScaleTitle(business_scale) : 'N/A';
+
+    business_industry_belong_to ? formattingBusinessTags(business_industry_belong_to) : '';
+
+    country_of_operation
+        ? getCountryNameUsingCode(country_of_operation, 'selection-company-country-of-operations')
+        : '';
+    states_of_operation
+        ? getStatesNameToBeDisplayUsingCode(states_of_operation, 'selection-company-state-of-operations')
+        : '';
+    city_of_operation ? getCityNameToBeDisplayUsingCode(city_of_operation, 'selection-company-city-of-operations') : '';
+    companyRegionOfOperationsId.innerHTML = region_of_operation || 'N/A';
+    localOperatingTimeId.innerHTML =
+        start_operating_hour && end_operating_hour ? `${start_operating_hour} - ${end_operating_hour}` : 'N/A';
+    uctOperatingTimeId.innerHTML =
+        start_operating_hour && end_operating_hour
+            ? convertTimeToInternationalStart(start_operating_hour, 'Philippines', 'UTC') +
+              ' - ' +
+              convertTimeToInternationalEnd(end_operating_hour, 'Philippines', 'UTC')
+            : 'N/A';
+
+
+
+
+    // const adjustedScreenHeight = window.innerHeight - 125;
+    // const img = new Image();
+    // img.className = 'companyBannerPreview';
+    // img.id = 'companyBannerPreview';
+    // img.onload = function () {
+    //     this.style.height = '';
+    //     this.style.height = `${adjustedScreenHeight}px`;
+    // };
+
+    // let adjustedScreenHeight2 = (window.innerHeight - 125) / 2;
+    // selectionsPrevSlide.style.top = `${adjustedScreenHeight2}px`;
+    // selectionsNextSlide.style.top = `${adjustedScreenHeight2}px`;
+
+    // companiesProfilePicture.innerHTML = '';
+    // const fragment = document.createDocumentFragment();
+
+    // for (let i = companyDetailsJsonObj2[0].length - 1; i >= 0; i--) {
+    //     const bannerSrc = host + '/uploads/users_upload_files/' + banner;
+    //     img.src = bannerSrc;
+
+
+    //     const li = document.createElement('li');
+    //     li.appendChild(img.cloneNode());
+    //     fragment.appendChild(li);
+    // }
+
+
+    // const li = document.createElement('li');
+    // li.appendChild(img.cloneNode());
+    // fragment.appendChild(li);
+
+
+    // companiesProfilePicture.appendChild(fragment);
+
+
+
+
+    // Clear existing slides
+    companiesProfilePicture.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+
+    // Loop banners (reverse order as you intended)
+    for (let i = companyDetailsJsonObj2[0].length - 1; i >= 0; i--) {
+    const bannerSrc = `${host}/uploads/users_upload_files/${banner}`;
+
+    const img = new Image();
+    img.className = 'companyBannerPreview';
+    img.loading = 'lazy';
+
+    img.onload = function () {
+        const adjustedHeight = getAdjustedHeight();
+        console.log('adjustedHeight on load:', adjustedHeight);
+        // this.style.maxHeight = `${adjustedHeight}px`;
+        this.style.height = '100%';
+        this.style.width = '100%';
+        this.style.objectFit = 'cover'; // or 'contain' if you don’t want cropping
+    };
+
+    img.src = bannerSrc;
+
+    const li = document.createElement('li');
+    li.appendChild(img);
+    fragment.appendChild(li);
+    }
+
+    // Append all at once (performance-friendly)
+    companiesProfilePicture.appendChild(fragment);
+
+    // Initial positioning
+    positionNavigationButtons();
+
+    // Recalculate on resize
+    window.addEventListener('resize', () => {
+    document.querySelectorAll('.companyBannerPreview').forEach(img => {
+        img.style.maxHeight = `${getAdjustedHeight()}px`;
+    });
+
+    positionNavigationButtons();
+    });
+}
+
+
+
+
+const HEADER_OFFSET = 125;
+
+function getAdjustedHeight() {
+  return window.innerHeight - HEADER_OFFSET;
+}
+
+function positionNavigationButtons() {
+  const centerY = getAdjustedHeight() / 2;
+  selectionsPrevSlide.style.top = `${centerY}px`;
+  selectionsNextSlide.style.top = `${centerY}px`;
+}
+
+// ==========================================
+
+
 
 function displayTopCompany() {
     topSelectionResultsId.innerHTML = '';
@@ -438,12 +643,13 @@ function handleSelectionPageResize() {
 // responsiveness of height in selection [end]
 // ============================================
 
-selectionsNextSlide.addEventListener('click', handleSelectionsSlideClickV1);
-selectionsPrevSlide.addEventListener('click', handleSelectionsSlideClickV1);
-selectionsNextSlide.addEventListener('mouseleave', handleSelectionsSlideClickV2);
-selectionsPrevSlide.addEventListener('mouseleave', handleSelectionsSlideClickV2);
-selectionsNextSlide.addEventListener('transitionend', getImageName);
-selectionsPrevSlide.addEventListener('transitionend', getImageName);
+// rex
+// selectionsNextSlide.addEventListener('click', handleSelectionsSlideClickV1);
+// selectionsPrevSlide.addEventListener('click', handleSelectionsSlideClickV1);
+// selectionsNextSlide.addEventListener('mouseleave', handleSelectionsSlideClickV2);
+// selectionsPrevSlide.addEventListener('mouseleave', handleSelectionsSlideClickV2);
+// selectionsNextSlide.addEventListener('transitionend', getImageName);
+// selectionsPrevSlide.addEventListener('transitionend', getImageName);
 
 function handleSelectionsSlideClickV1() {
     varCounter = 0;
